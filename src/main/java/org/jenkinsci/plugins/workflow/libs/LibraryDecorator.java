@@ -113,6 +113,7 @@ import org.jenkinsci.plugins.workflow.cps.GroovyShellDecorator;
                             Object constantValue = ((ConstantExpression) value).getValue();
                             if (constantValue instanceof String) {
                                 libraries.add((String) constantValue);
+                                LOGGER.log( Level.INFO, "Added library [" + constantValue + "]; libraries is now [" + libraries + "]" );
                                 if (changelog != null) {
                                 changelogs.put((String) constantValue, (Boolean) ((ConstantExpression) changelog).getValue());
                                 }
