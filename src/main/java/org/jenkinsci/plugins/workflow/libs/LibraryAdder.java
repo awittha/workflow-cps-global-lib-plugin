@@ -93,6 +93,8 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
         LibrariesAction action = build.getAction(LibrariesAction.class);
         if (action != null) {
             // Resuming a build, so just look up what we loaded before.
+        	 listener.getLogger().println(
+         			"Resuming a build, so just look up what we loaded before..." );
             for (LibraryRecord record : action.getLibraries()) {
                 FilePath libDir = new FilePath(execution.getOwner().getRootDir()).child("libs/" + record.name);
                 for (String root : new String[] {"src", "vars"}) {
@@ -106,11 +108,17 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
                     libraries.remove(unparsed);
                 }
             }
+            
+            listener.getLogger().println(
+        			"additions: [" + additions + "]" );
+            
             return additions;
         }
         // Now we will see which libraries we want to load for this job.
         Map<String,LibraryRecord> librariesAdded = new LinkedHashMap<>();
         Map<String,LibraryRetriever> retrievers = new HashMap<>();
+        
+        listener.getLogger().println( "LibraryResolvers: [" + ExtensionList.lookup(LibraryResolver.class) + "]" );
         
         for (LibraryResolver kind : ExtensionList.lookup(LibraryResolver.class)) {
         	
