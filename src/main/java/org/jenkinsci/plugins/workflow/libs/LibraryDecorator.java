@@ -130,9 +130,12 @@ import org.jenkinsci.plugins.workflow.cps.GroovyShellDecorator;
                         }
                     }
                 }.visitClass(classNode);
+                LOGGER.log( Level.INFO, "after visiting nodes, libraries was [" + libraries + "]" );
                 try {
                     for (ClasspathAdder adder : ExtensionList.lookup(ClasspathAdder.class)) {
-                        for (ClasspathAdder.Addition addition : adder.add(execution, libraries, changelogs)) {
+                    	 LOGGER.log( Level.INFO, "With ClasspathAdder [" + adder + "] of class [" + adder.getClass() + "], will try to make an addition for libraries [" + libraries + "]" );
+                        for (ClasspathAdder.Addition addition : adder.add(execution, libraries, changelogs)) {  
+                        	LOGGER.log( Level.INFO, "made addition: [" + addition + "]; libraries is now [" + libraries + "]" );
                             addition.addTo(execution);
                         }
                     }
