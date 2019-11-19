@@ -93,7 +93,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
         
         List<Addition> additions = new ArrayList<>();
         LibrariesAction action = build.getAction(LibrariesAction.class);
-        if (action != null&& false) {
+        if (action != null) {
             // Resuming a build, so just look up what we loaded before.
         	 listener.getLogger().println(
          			"Resuming a build, so just look up what we loaded before... existing LibrariesAction is [" + action + "] with libraries: [" + action.getLibraries() + "]" );
@@ -162,13 +162,15 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
             }
         }
         // Record libraries we plan to load. We need LibrariesAction there first so variables can be interpolated.
-        build.addAction(new LibrariesAction(new ArrayList<>(librariesAdded.values())));
-        // Now actually try to retrieve the libraries.
-        for (LibraryRecord record : librariesAdded.values()) {
-            listener.getLogger().println("Loading library " + record.name + "@" + record.version);
-            for (URL u : retrieve(record.name, record.version, retrievers.get(record.name), record.trusted, record.changelog, listener, build, execution, record.variables)) {
-                additions.add(new Addition(u, record.trusted));
-            }
+        if( librariesAdded.size() > 0 ) {
+	        build.addAction(new LibrariesAction(new ArrayList<>(librariesAdded.values())));
+	        // Now actually try to retrieve the libraries.
+	        for (LibraryRecord record : librariesAdded.values()) {
+	            listener.getLogger().println("Loading library " + record.name + "@" + record.version);
+	            for (URL u : retrieve(record.name, record.version, retrievers.get(record.name), record.trusted, record.changelog, listener, build, execution, record.variables)) {
+	                additions.add(new Addition(u, record.trusted));
+	            }
+	        }
         }
         return additions;
     }
