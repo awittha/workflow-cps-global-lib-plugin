@@ -92,7 +92,7 @@ import org.jenkinsci.plugins.workflow.cps.GroovyShellDecorator;
                                 if (value == null) {
                                     source.getErrorCollector().addErrorAndContinue(Message.create("@Library was missing a value", source));
                                 } else {
-                                	LOGGER.log( Level.INFO, "Processing library expression [" + value +"]");
+                                	LOGGER.log( Level.INFO, "Processing library expression [" + value +"] from SourceUnit [" + source + "] named [" + source.getName() + "]. line 1: [" + source.getSource().getLine(0, null) + "]");
                                     processExpression(source, libraries, value, changelogs, changelog);
                                 }
                             }
