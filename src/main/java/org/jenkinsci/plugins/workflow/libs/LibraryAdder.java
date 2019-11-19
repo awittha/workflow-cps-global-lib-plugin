@@ -84,6 +84,11 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
             libraryChangelogs.put(parsed[0], changelogs.get(library));
             librariesUnparsed.put(parsed[0], library);
         }
+        
+        LOGGER.log(
+    			Level.INFO,
+    			"LibraryVersions: [" + libraryVersions + "]" );
+        
         List<Addition> additions = new ArrayList<>();
         LibrariesAction action = build.getAction(LibrariesAction.class);
         if (action != null) {
@@ -108,10 +113,23 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
         Map<String,LibraryRetriever> retrievers = new HashMap<>();
         TaskListener listener = execution.getOwner().getListener();
         for (LibraryResolver kind : ExtensionList.lookup(LibraryResolver.class)) {
+        	
+        	listener.getLogger().println(
+        			"Processing LibraryResolver [" + kind + "] of class [" + kind.getClass() + "]" );
+        	
             boolean kindTrusted = kind.isTrusted();
             for (LibraryConfiguration cfg : kind.forJob(build.getParent(), libraryVersions)) {
+            	
+            	listener.getLogger().println(
+            			"Processing LibraryConfiguration [" + cfg + "] named [" + cfg.getName() + "]" );
+            	
                 String name = cfg.getName();
                 if (!cfg.isImplicit() && !libraryVersions.containsKey(name)) {
+                	
+                	listener.getLogger().println(
+                			"NOT USING LibraryConfiguration [" + cfg + "] named [" + cfg.getName() + 
+                			"]: not implicit AND libraryVersions (" + libraryVersions + ") doesn't contain this lib's name (" + name + ")" );
+                	
                     continue; // not using this one at all
                 }
                 if (librariesAdded.containsKey(name)) {
@@ -122,6 +140,9 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
                 Boolean changelog = cfg.defaultedChangelogs(libraryChangelogs.remove(name));
                 librariesAdded.put(name, new LibraryRecord(name, version, kindTrusted, changelog));
                 retrievers.put(name, cfg.getRetriever());
+                
+                listener.getLogger().println(
+                		"LibrariesAdded is now [" + librariesAdded + "]; retrievers is now [" + retrievers + "]" );
             }
         }
         for (String name : librariesAdded.keySet()) {
