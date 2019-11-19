@@ -93,7 +93,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
         
         List<Addition> additions = new ArrayList<>();
         LibrariesAction action = build.getAction(LibrariesAction.class);
-        if (action != null) {
+        if (action != null&& false) {
             // Resuming a build, so just look up what we loaded before.
         	 listener.getLogger().println(
          			"Resuming a build, so just look up what we loaded before... existing LibrariesAction is [" + action + "] with libraries: [" + action.getLibraries() + "]" );
