@@ -74,6 +74,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
             // SCM.checkout does not make it possible to do checkouts outside the context of a Run.
             return Collections.emptyList();
         }
+        TaskListener listener = execution.getOwner().getListener();
         // First parse the library declarations (if any) looking for requested versions.
         Map<String,String> libraryVersions = new HashMap<>();
         Map<String,Boolean> libraryChangelogs = new HashMap<>();
@@ -85,8 +86,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
             librariesUnparsed.put(parsed[0], library);
         }
         
-        LOGGER.log(
-    			Level.INFO,
+        listener.getLogger().println(
     			"LibraryVersions: [" + libraryVersions + "]" );
         
         List<Addition> additions = new ArrayList<>();
@@ -111,7 +111,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
         // Now we will see which libraries we want to load for this job.
         Map<String,LibraryRecord> librariesAdded = new LinkedHashMap<>();
         Map<String,LibraryRetriever> retrievers = new HashMap<>();
-        TaskListener listener = execution.getOwner().getListener();
+        
         for (LibraryResolver kind : ExtensionList.lookup(LibraryResolver.class)) {
         	
         	listener.getLogger().println(
