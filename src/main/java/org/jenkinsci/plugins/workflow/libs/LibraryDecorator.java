@@ -58,6 +58,8 @@ import org.jenkinsci.plugins.workflow.cps.GroovyShellDecorator;
  * Adds an import for {@link Library}, checks for it being used, and actually loads the library.
  */
 @Extension public class LibraryDecorator extends GroovyShellDecorator {
+	
+    private static final Logger LOGGER = Logger.getLogger(LibraryDecorator.class.getName());
 
     @Override public void customizeImports(CpsFlowExecution execution, ImportCustomizer ic) {
         ic.addImports(Library.class.getName());
@@ -90,6 +92,7 @@ import org.jenkinsci.plugins.workflow.cps.GroovyShellDecorator;
                                 if (value == null) {
                                     source.getErrorCollector().addErrorAndContinue(Message.create("@Library was missing a value", source));
                                 } else {
+                                	LOGGER.log( Level.INFO, "Processing library expression [" + value +"]");
                                     processExpression(source, libraries, value, changelogs, changelog);
                                 }
                             }
@@ -101,7 +104,9 @@ import org.jenkinsci.plugins.workflow.cps.GroovyShellDecorator;
                     }
 
                     private void processExpression(SourceUnit source, List<String> libraries, Expression value, HashMap<String, Boolean> changelogs, Expression changelog) {
+                    	
                         if (value instanceof ConstantExpression) { // one library
+                        	LOGGER.log( Level.INFO, "Processing library expression [" + value +"] as SINGLE library");
                             Object constantValue = ((ConstantExpression) value).getValue();
                             if (constantValue instanceof String) {
                                 libraries.add((String) constantValue);
@@ -112,6 +117,7 @@ import org.jenkinsci.plugins.workflow.cps.GroovyShellDecorator;
                                 source.getErrorCollector().addErrorAndContinue(Message.create("@Library value ‘" + constantValue + "’ was not a string", source));
                             }
                         } else if (value instanceof ListExpression) { // several libraries
+                        	LOGGER.log( Level.INFO, "Processing library expression [" + value +"] as multi-library.");
                             for (Expression element : ((ListExpression) value).getExpressions()) {
                                 processExpression(source, libraries, element);
                             }
