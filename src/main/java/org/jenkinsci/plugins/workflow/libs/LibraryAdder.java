@@ -94,7 +94,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
         if (action != null) {
             // Resuming a build, so just look up what we loaded before.
         	 listener.getLogger().println(
-         			"Resuming a build, so just look up what we loaded before..." );
+         			"Resuming a build, so just look up what we loaded before... existing LibrariesAction is [" + action + "] with libraries: [" + action.getLibraries() + "]" );
             for (LibraryRecord record : action.getLibraries()) {
                 FilePath libDir = new FilePath(execution.getOwner().getRootDir()).child("libs/" + record.name);
                 for (String root : new String[] {"src", "vars"}) {
