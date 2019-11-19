@@ -76,13 +76,16 @@ import org.jenkinsci.plugins.workflow.cps.GroovyShellDecorator;
             @Override public void call(final SourceUnit source, GeneratorContext context, ClassNode classNode) throws CompilationFailedException {
                 final List<String> libraries = new ArrayList<>();
                 final HashMap<String, Boolean> changelogs = new HashMap<>();
+                LOGGER.log( Level.INFO, "about to start a ClassCodeVisitorSupport on SourceUnit [" + source + "] named [" + source.getName() + "]. line 1: [" + source.getSource().getLine(0, null) + "]. ClassNode: [" + classNode + "]" );
                 new ClassCodeVisitorSupport() {
                     @Override protected SourceUnit getSourceUnit() {
                         return source;
                     }
                     @Override public void visitAnnotations(AnnotatedNode node) {
+                    	LOGGER.log( Level.INFO, "visiting an annotated node: [" + node + "]; text: [" + node.getText() + "]" );
                         super.visitAnnotations(node);
                         for (AnnotationNode annotationNode : node.getAnnotations()) {
+                        	LOGGER.log( Level.INFO, "Visiting annotation [" + annotationNode + "]; @" + annotationNode.getClassNode() );
                             String name = annotationNode.getClassNode().getName();
                             if (name.equals(Library.class.getCanonicalName()) ||
                                     // In the CONVERSION phase we will not have resolved the implicit import yet.
