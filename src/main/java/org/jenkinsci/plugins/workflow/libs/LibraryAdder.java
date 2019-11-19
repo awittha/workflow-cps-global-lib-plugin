@@ -89,7 +89,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
         listener.getLogger().println(
     			"LibraryVersions: [" + libraryVersions + "]" );
         
-        listener.getLogger().println( "Script: [" + execution.getScript() + "]" );
+        listener.getLogger().println( "Script: [" + execution.getScript() + "]; owner: [" + execution.getOwner() + "]" );
         
         List<Addition> additions = new ArrayList<>();
         LibrariesAction action = build.getAction(LibrariesAction.class);
