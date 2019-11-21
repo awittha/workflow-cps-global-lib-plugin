@@ -88,7 +88,6 @@ import hudson.model.TaskListener;
             libraryChangelogs.put(parsed[0], changelogs.get(library));
             librariesUnparsed.put(parsed[0], library);
         }
-
         List<Addition> additions = new ArrayList<>();
         LibrariesAction action = null;
         
@@ -118,7 +117,6 @@ import hudson.model.TaskListener;
                     libraries.remove(unparsed);
                 }
             }
-            
             return additions;
         }
         // Now we will see which libraries we want to load for this job.
