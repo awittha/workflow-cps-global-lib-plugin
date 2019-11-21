@@ -46,11 +46,11 @@ class LibrariesAction extends InvisibleAction {
     private final String scope;
     
     LibrariesAction(List<LibraryRecord> libraries) {
-    	this(null, libraries);
+        this(null, libraries);
     }
 
     LibrariesAction(String scope, List<LibraryRecord> libraries) {
-    	this.scope = scope;
+        this.scope = scope;
         this.libraries = libraries;
     }
 
@@ -65,7 +65,7 @@ class LibrariesAction extends InvisibleAction {
      * @return An identifier of the source file that these library definitions are for
      */
     public String getScope() {
-    	return scope;
+        return scope;
     }
 
     @Extension public static class LibraryEnvironment extends EnvironmentContributor {
