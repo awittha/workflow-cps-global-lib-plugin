@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.codehaus.groovy.control.SourceUnit;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowExecution;
 
 /**
