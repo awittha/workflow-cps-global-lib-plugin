@@ -78,7 +78,6 @@ import hudson.model.TaskListener;
             // SCM.checkout does not make it possible to do checkouts outside the context of a Run.
             return Collections.emptyList();
         }
-        TaskListener listener = execution.getOwner().getListener();
         // First parse the library declarations (if any) looking for requested versions.
         Map<String,String> libraryVersions = new HashMap<>();
         Map<String,Boolean> libraryChangelogs = new HashMap<>();
@@ -92,6 +91,7 @@ import hudson.model.TaskListener;
 
         List<Addition> additions = new ArrayList<>();
         LibrariesAction action = null;
+        TaskListener listener = execution.getOwner().getListener();
         
         for( LibrariesAction laction : build.getActions( LibrariesAction.class ) ) {
             if( laction.getScope() != null && laction.getScope().equals( scope ) ) {
