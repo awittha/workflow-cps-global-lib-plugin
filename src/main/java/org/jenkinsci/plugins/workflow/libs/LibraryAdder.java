@@ -89,31 +89,23 @@ import hudson.model.TaskListener;
             libraryChangelogs.put(parsed[0], changelogs.get(library));
             librariesUnparsed.put(parsed[0], library);
         }
-        
-        listener.getLogger().println(
-                "LibraryVersions: [" + libraryVersions + "]" );
-        
-        listener.getLogger().println( "Execution: [" + execution + "]\nScript: [" + execution.getScript() + "]\nloadedScripts: [" + execution.getLoadedScripts() + "]\nowner: [" + execution.getOwner() + "]\ncurrent heads [" + execution.getCurrentHeads() + "]" );
-        
+
         List<Addition> additions = new ArrayList<>();
         LibrariesAction action = null;
         
         for( LibrariesAction laction : build.getActions( LibrariesAction.class ) ) {
             if( laction.getScope() != null && laction.getScope().equals( scope ) ) {
-                // found the action that's absolutely right
+                // found the action that's absolutely right for this scope
                 action = laction;
                 break;
             } else if( laction.getScope() == null ) {
-                // null = was saved from before these updates were made, always use it in all cases
-                // may be overridden later if there's a perfect match.
+                // generic LibrariesAction may be overridden later if there's a perfect match.
                 action = laction;
             }
         }
         
         if (action != null) {
             // Resuming a build, so just look up what we loaded before.
-             listener.getLogger().println(
-                     "Resuming a build, so just look up what we loaded before... existing LibrariesAction is [" + action + "] with libraries: [" + action.getLibraries() + "]" );
             for (LibraryRecord record : action.getLibraries()) {
                 FilePath libDir = new FilePath(execution.getOwner().getRootDir()).child("libs/" + record.name);
                 for (String root : new String[] {"src", "vars"}) {
@@ -128,35 +120,16 @@ import hudson.model.TaskListener;
                 }
             }
             
-            listener.getLogger().println(
-                    "additions: [" + additions + "]" );
-            
             return additions;
         }
         // Now we will see which libraries we want to load for this job.
         Map<String,LibraryRecord> librariesAdded = new LinkedHashMap<>();
         Map<String,LibraryRetriever> retrievers = new HashMap<>();
-        
-        listener.getLogger().println( "LibraryResolvers: [" + ExtensionList.lookup(LibraryResolver.class) + "]" );
-        
         for (LibraryResolver kind : ExtensionList.lookup(LibraryResolver.class)) {
-            
-            listener.getLogger().println(
-                    "Processing LibraryResolver [" + kind + "] of class [" + kind.getClass() + "]" );
-            
             boolean kindTrusted = kind.isTrusted();
             for (LibraryConfiguration cfg : kind.forJob(build.getParent(), libraryVersions)) {
-                
-                listener.getLogger().println(
-                        "Processing LibraryConfiguration [" + cfg + "] named [" + cfg.getName() + "]" );
-                
                 String name = cfg.getName();
                 if (!cfg.isImplicit() && !libraryVersions.containsKey(name)) {
-                    
-                    listener.getLogger().println(
-                            "NOT USING LibraryConfiguration [" + cfg + "] named [" + cfg.getName() + 
-                            "]: not implicit AND libraryVersions (" + libraryVersions + ") doesn't contain this lib's name (" + name + ")" );
-                    
                     continue; // not using this one at all
                 }
                 if (librariesAdded.containsKey(name)) {
@@ -167,9 +140,6 @@ import hudson.model.TaskListener;
                 Boolean changelog = cfg.defaultedChangelogs(libraryChangelogs.remove(name));
                 librariesAdded.put(name, new LibraryRecord(name, version, kindTrusted, changelog));
                 retrievers.put(name, cfg.getRetriever());
-                
-                listener.getLogger().println(
-                        "LibrariesAdded is now [" + librariesAdded + "]; retrievers is now [" + retrievers + "]" );
             }
         }
         for (String name : librariesAdded.keySet()) {

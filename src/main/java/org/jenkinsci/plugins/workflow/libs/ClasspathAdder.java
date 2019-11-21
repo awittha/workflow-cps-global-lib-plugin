@@ -71,7 +71,7 @@ public abstract class ClasspathAdder implements ExtensionPoint {
     
     /**
      * May add to the classpath.
-     * @param scope a source file that the addition came from
+     * @param scope identifier for the source file that the addition came from
      * @param execution a running build (possibly newly started, possibly resumed)
      * @param libraries aggregated entries from all encountered {@link Library#value} (will be empty if {@link Library} is never used at all); an implementation should remove entries it “claims”
      * @return a possibly empty list of additions
