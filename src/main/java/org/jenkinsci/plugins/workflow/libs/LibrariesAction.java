@@ -32,7 +32,6 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import java.io.IOException;
 import java.util.List;
-import org.codehaus.groovy.control.SourceUnit;
 
 /**
  * A run action recording libraries used in a given build.
