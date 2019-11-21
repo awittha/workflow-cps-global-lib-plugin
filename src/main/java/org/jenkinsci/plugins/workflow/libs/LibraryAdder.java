@@ -91,7 +91,6 @@ import hudson.model.TaskListener;
 
         List<Addition> additions = new ArrayList<>();
         LibrariesAction action = null;
-        TaskListener listener = execution.getOwner().getListener();
         
         for( LibrariesAction laction : build.getActions( LibrariesAction.class ) ) {
             if( laction.getScope() != null && laction.getScope().equals( scope ) ) {
@@ -125,6 +124,7 @@ import hudson.model.TaskListener;
         // Now we will see which libraries we want to load for this job.
         Map<String,LibraryRecord> librariesAdded = new LinkedHashMap<>();
         Map<String,LibraryRetriever> retrievers = new HashMap<>();
+        TaskListener listener = execution.getOwner().getListener();
         for (LibraryResolver kind : ExtensionList.lookup(LibraryResolver.class)) {
             boolean kindTrusted = kind.isTrusted();
             for (LibraryConfiguration cfg : kind.forJob(build.getParent(), libraryVersions)) {
