@@ -253,11 +253,11 @@ import hudson.model.TaskListener;
             List<GlobalVariable> vars = new ArrayList<>();
             
             for( LibrariesAction action : run.getActions(LibrariesAction.class)) {
-	            for (LibraryRecord library : action.getLibraries()) {
-	                for (String variable : library.variables) {
-	                    vars.add(new UserDefinedGlobalVariable(variable, new File(run.getRootDir(), "libs/" + library.name + "/vars/" + variable + ".txt")));
-	                }
-	            }
+                for (LibraryRecord library : action.getLibraries()) {
+                    for (String variable : library.variables) {
+                        vars.add(new UserDefinedGlobalVariable(variable, new File(run.getRootDir(), "libs/" + library.name + "/vars/" + variable + ".txt")));
+                    }
+                }
             }
             
             return vars;

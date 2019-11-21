@@ -190,10 +190,10 @@ public class LibraryStep extends AbstractStepImpl {
             LibrariesAction action = null;
             
             for( LibrariesAction laction : run.getActions(LibrariesAction.class)) {
-            	if( null == laction.getScope() ) {
-            		action = laction;
-            		break;
-            	}
+                if( null == laction.getScope() ) {
+                    action = laction;
+                    break;
+                }
             }
             
             if (action == null) {

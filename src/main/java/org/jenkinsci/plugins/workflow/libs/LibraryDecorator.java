@@ -101,7 +101,6 @@ import org.jenkinsci.plugins.workflow.cps.GroovyShellDecorator;
                     }
 
                     private void processExpression(SourceUnit source, List<String> libraries, Expression value, HashMap<String, Boolean> changelogs, Expression changelog) {
-                    	
                         if (value instanceof ConstantExpression) { // one library
                             Object constantValue = ((ConstantExpression) value).getValue();
                             if (constantValue instanceof String) {
