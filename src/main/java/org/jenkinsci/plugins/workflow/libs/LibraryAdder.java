@@ -286,8 +286,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
                                 }
                             }
                         }
-                    }
-                    
+                    }                    
                 }
             } catch (IOException | InterruptedException x) {
                 LOGGER.log(Level.WARNING, null, x);
