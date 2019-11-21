@@ -58,8 +58,6 @@ import org.jenkinsci.plugins.workflow.cps.GroovyShellDecorator;
  * Adds an import for {@link Library}, checks for it being used, and actually loads the library.
  */
 @Extension public class LibraryDecorator extends GroovyShellDecorator {
-	
-    private static final Logger LOGGER = Logger.getLogger(LibraryDecorator.class.getName());
 
     @Override public void customizeImports(CpsFlowExecution execution, ImportCustomizer ic) {
         ic.addImports(Library.class.getName());
@@ -76,16 +74,13 @@ import org.jenkinsci.plugins.workflow.cps.GroovyShellDecorator;
             @Override public void call(final SourceUnit source, GeneratorContext context, ClassNode classNode) throws CompilationFailedException {
                 final List<String> libraries = new ArrayList<>();
                 final HashMap<String, Boolean> changelogs = new HashMap<>();
-                LOGGER.log( Level.INFO, "about to start a ClassCodeVisitorSupport on SourceUnit [" + source + "] named [" + source.getName() + "]. line 1: [" + source.getSource().getLine(0, null) + "]. ClassNode: [" + classNode + "]" );
                 new ClassCodeVisitorSupport() {
                     @Override protected SourceUnit getSourceUnit() {
                         return source;
                     }
                     @Override public void visitAnnotations(AnnotatedNode node) {
-                    	LOGGER.log( Level.INFO, "visiting an annotated node: [" + node + "]; text: [" + node.getText() + "]" );
                         super.visitAnnotations(node);
                         for (AnnotationNode annotationNode : node.getAnnotations()) {
-                        	LOGGER.log( Level.INFO, "Visiting annotation [" + annotationNode + "]; @" + annotationNode.getClassNode() );
                             String name = annotationNode.getClassNode().getName();
                             if (name.equals(Library.class.getCanonicalName()) ||
                                     // In the CONVERSION phase we will not have resolved the implicit import yet.
@@ -95,7 +90,6 @@ import org.jenkinsci.plugins.workflow.cps.GroovyShellDecorator;
                                 if (value == null) {
                                     source.getErrorCollector().addErrorAndContinue(Message.create("@Library was missing a value", source));
                                 } else {
-                                	LOGGER.log( Level.INFO, "Processing library expression [" + value +"] from SourceUnit [" + source + "] named [" + source.getName() + "]. line 1: [" + source.getSource().getLine(0, null) + "]");
                                     processExpression(source, libraries, value, changelogs, changelog);
                                 }
                             }
@@ -109,11 +103,9 @@ import org.jenkinsci.plugins.workflow.cps.GroovyShellDecorator;
                     private void processExpression(SourceUnit source, List<String> libraries, Expression value, HashMap<String, Boolean> changelogs, Expression changelog) {
                     	
                         if (value instanceof ConstantExpression) { // one library
-                        	LOGGER.log( Level.INFO, "Processing library expression [" + value +"] as SINGLE library");
                             Object constantValue = ((ConstantExpression) value).getValue();
                             if (constantValue instanceof String) {
                                 libraries.add((String) constantValue);
-                                LOGGER.log( Level.INFO, "Added library [" + constantValue + "]; libraries is now [" + libraries + "]" );
                                 if (changelog != null) {
                                 changelogs.put((String) constantValue, (Boolean) ((ConstantExpression) changelog).getValue());
                                 }
@@ -121,7 +113,6 @@ import org.jenkinsci.plugins.workflow.cps.GroovyShellDecorator;
                                 source.getErrorCollector().addErrorAndContinue(Message.create("@Library value ‘" + constantValue + "’ was not a string", source));
                             }
                         } else if (value instanceof ListExpression) { // several libraries
-                        	LOGGER.log( Level.INFO, "Processing library expression [" + value +"] as multi-library.");
                             for (Expression element : ((ListExpression) value).getExpressions()) {
                                 processExpression(source, libraries, element);
                             }
@@ -130,12 +121,9 @@ import org.jenkinsci.plugins.workflow.cps.GroovyShellDecorator;
                         }
                     }
                 }.visitClass(classNode);
-                LOGGER.log( Level.INFO, "after visiting nodes, libraries was [" + libraries + "]" );
                 try {
                     for (ClasspathAdder adder : ExtensionList.lookup(ClasspathAdder.class)) {
-                    	 LOGGER.log( Level.INFO, "With ClasspathAdder [" + adder + "] of class [" + adder.getClass() + "], will try to make an addition for libraries [" + libraries + "]" );
                         for (ClasspathAdder.Addition addition : adder.add(source.getName(), execution, libraries, changelogs)) {  
-                        	LOGGER.log( Level.INFO, "made addition: [" + addition + "]; libraries is now [" + libraries + "]" );
                             addition.addTo(execution);
                         }
                     }
