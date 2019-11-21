@@ -63,7 +63,7 @@ public abstract class ClasspathAdder implements ExtensionPoint {
     }
 
     /**
-     * @see #add(SourceUnit, CpsFlowExecution, List, HashMap)
+     * @see #add(String, CpsFlowExecution, List, HashMap)
      */
     public @Nonnull List<Addition> add(@Nonnull CpsFlowExecution execution, @Nonnull List<String> libraries, @Nonnull HashMap<String, Boolean> changelogs) throws Exception {
         return add( null, execution, libraries, changelogs );
