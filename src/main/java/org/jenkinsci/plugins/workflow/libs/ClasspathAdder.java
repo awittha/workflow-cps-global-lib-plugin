@@ -24,18 +24,15 @@
 
 package org.jenkinsci.plugins.workflow.libs;
 
+import groovy.lang.GroovyShell;
+import hudson.ExtensionPoint;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import org.codehaus.groovy.control.SourceUnit;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowExecution;
-
-import groovy.lang.GroovyShell;
-import hudson.ExtensionPoint;
 
 /**
  * Allows libraries to be mapped to actual classpath additions.
