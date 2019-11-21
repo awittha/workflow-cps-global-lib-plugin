@@ -24,13 +24,6 @@
 
 package org.jenkinsci.plugins.workflow.libs;
 
-import hudson.AbortException;
-import hudson.Extension;
-import hudson.ExtensionList;
-import hudson.FilePath;
-import hudson.model.Queue;
-import hudson.model.Run;
-import hudson.model.TaskListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,9 +40,12 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+
 import org.apache.commons.io.IOUtils;
+import org.codehaus.groovy.control.SourceUnit;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowExecution;
 import org.jenkinsci.plugins.workflow.cps.GlobalVariable;
 import org.jenkinsci.plugins.workflow.cps.GlobalVariableSet;
@@ -58,6 +54,14 @@ import org.jenkinsci.plugins.workflow.cps.replay.OriginalLoadedScripts;
 import org.jenkinsci.plugins.workflow.cps.replay.ReplayAction;
 import org.jenkinsci.plugins.workflow.flow.FlowCopier;
 
+import hudson.AbortException;
+import hudson.Extension;
+import hudson.ExtensionList;
+import hudson.FilePath;
+import hudson.model.Queue;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+
 /**
  * Given {@link LibraryResolver}, actually adds to the Groovy classpath.
  */
@@ -65,7 +69,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
 
     private static final Logger LOGGER = Logger.getLogger(LibraryAdder.class.getName());
 
-    @Override public List<Addition> add(CpsFlowExecution execution, List<String> libraries, HashMap<String, Boolean> changelogs) throws Exception {
+    @Override public List<Addition> add(String scope, CpsFlowExecution execution, List<String> libraries, HashMap<String, Boolean> changelogs) throws Exception {
         Queue.Executable executable = execution.getOwner().getExecutable();
         Run<?,?> build;
         if (executable instanceof Run) {
@@ -87,16 +91,29 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
         }
         
         listener.getLogger().println(
-    			"LibraryVersions: [" + libraryVersions + "]" );
+                "LibraryVersions: [" + libraryVersions + "]" );
         
         listener.getLogger().println( "Execution: [" + execution + "]\nScript: [" + execution.getScript() + "]\nloadedScripts: [" + execution.getLoadedScripts() + "]\nowner: [" + execution.getOwner() + "]\ncurrent heads [" + execution.getCurrentHeads() + "]" );
         
         List<Addition> additions = new ArrayList<>();
-        LibrariesAction action = build.getAction(LibrariesAction.class);
+        LibrariesAction action = null;
+        
+        for( LibrariesAction laction : build.getActions( LibrariesAction.class ) ) {
+            if( laction.getScope() != null && laction.getScope().equals( scope ) ) {
+                // found the action that's absolutely right
+                action = laction;
+                break;
+            } else if( laction.getScope() == null ) {
+                // null = was saved from before these updates were made, always use it in all cases
+                // may be overridden later if there's a perfect match.
+                action = laction;
+            }
+        }
+        
         if (action != null) {
             // Resuming a build, so just look up what we loaded before.
-        	 listener.getLogger().println(
-         			"Resuming a build, so just look up what we loaded before... existing LibrariesAction is [" + action + "] with libraries: [" + action.getLibraries() + "]" );
+             listener.getLogger().println(
+                     "Resuming a build, so just look up what we loaded before... existing LibrariesAction is [" + action + "] with libraries: [" + action.getLibraries() + "]" );
             for (LibraryRecord record : action.getLibraries()) {
                 FilePath libDir = new FilePath(execution.getOwner().getRootDir()).child("libs/" + record.name);
                 for (String root : new String[] {"src", "vars"}) {
@@ -112,7 +129,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
             }
             
             listener.getLogger().println(
-        			"additions: [" + additions + "]" );
+                    "additions: [" + additions + "]" );
             
             return additions;
         }
@@ -123,23 +140,23 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
         listener.getLogger().println( "LibraryResolvers: [" + ExtensionList.lookup(LibraryResolver.class) + "]" );
         
         for (LibraryResolver kind : ExtensionList.lookup(LibraryResolver.class)) {
-        	
-        	listener.getLogger().println(
-        			"Processing LibraryResolver [" + kind + "] of class [" + kind.getClass() + "]" );
-        	
+            
+            listener.getLogger().println(
+                    "Processing LibraryResolver [" + kind + "] of class [" + kind.getClass() + "]" );
+            
             boolean kindTrusted = kind.isTrusted();
             for (LibraryConfiguration cfg : kind.forJob(build.getParent(), libraryVersions)) {
-            	
-            	listener.getLogger().println(
-            			"Processing LibraryConfiguration [" + cfg + "] named [" + cfg.getName() + "]" );
-            	
+                
+                listener.getLogger().println(
+                        "Processing LibraryConfiguration [" + cfg + "] named [" + cfg.getName() + "]" );
+                
                 String name = cfg.getName();
                 if (!cfg.isImplicit() && !libraryVersions.containsKey(name)) {
-                	
-                	listener.getLogger().println(
-                			"NOT USING LibraryConfiguration [" + cfg + "] named [" + cfg.getName() + 
-                			"]: not implicit AND libraryVersions (" + libraryVersions + ") doesn't contain this lib's name (" + name + ")" );
-                	
+                    
+                    listener.getLogger().println(
+                            "NOT USING LibraryConfiguration [" + cfg + "] named [" + cfg.getName() + 
+                            "]: not implicit AND libraryVersions (" + libraryVersions + ") doesn't contain this lib's name (" + name + ")" );
+                    
                     continue; // not using this one at all
                 }
                 if (librariesAdded.containsKey(name)) {
@@ -152,7 +169,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
                 retrievers.put(name, cfg.getRetriever());
                 
                 listener.getLogger().println(
-                		"LibrariesAdded is now [" + librariesAdded + "]; retrievers is now [" + retrievers + "]" );
+                        "LibrariesAdded is now [" + librariesAdded + "]; retrievers is now [" + retrievers + "]" );
             }
         }
         for (String name : librariesAdded.keySet()) {
@@ -163,14 +180,14 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
         }
         // Record libraries we plan to load. We need LibrariesAction there first so variables can be interpolated.
         if( librariesAdded.size() > 0 ) {
-	        build.addAction(new LibrariesAction(new ArrayList<>(librariesAdded.values())));
-	        // Now actually try to retrieve the libraries.
-	        for (LibraryRecord record : librariesAdded.values()) {
-	            listener.getLogger().println("Loading library " + record.name + "@" + record.version);
-	            for (URL u : retrieve(record.name, record.version, retrievers.get(record.name), record.trusted, record.changelog, listener, build, execution, record.variables)) {
-	                additions.add(new Addition(u, record.trusted));
-	            }
-	        }
+            build.addAction(new LibrariesAction(new ArrayList<>(librariesAdded.values())));
+            // Now actually try to retrieve the libraries.
+            for (LibraryRecord record : librariesAdded.values()) {
+                listener.getLogger().println("Loading library " + record.name + "@" + record.version);
+                for (URL u : retrieve(record.name, record.version, retrievers.get(record.name), record.trusted, record.changelog, listener, build, execution, record.variables)) {
+                    additions.add(new Addition(u, record.trusted));
+                }
+            }
         }
         return additions;
     }
@@ -233,8 +250,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
         Queue.Executable executable = execution.getOwner().getExecutable();
         if (executable instanceof Run) {
             Run<?,?> run = (Run) executable;
-            LibrariesAction action = run.getAction(LibrariesAction.class);
-            if (action != null) {
+            for( LibrariesAction action : run.getActions(LibrariesAction.class)) {
                 FilePath libs = new FilePath(run.getRootDir()).child("libs");
                 for (LibraryRecord library : action.getLibraries()) {
                     FilePath f = libs.child(library.name + "/resources/" + name);
@@ -263,16 +279,17 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
             if (run == null) {
                 return Collections.emptySet();
             }
-            LibrariesAction action = run.getAction(LibrariesAction.class);
-            if (action == null) {
-                return Collections.emptySet();
-            }
+
             List<GlobalVariable> vars = new ArrayList<>();
-            for (LibraryRecord library : action.getLibraries()) {
-                for (String variable : library.variables) {
-                    vars.add(new UserDefinedGlobalVariable(variable, new File(run.getRootDir(), "libs/" + library.name + "/vars/" + variable + ".txt")));
-                }
+            
+            for( LibrariesAction action : run.getActions(LibrariesAction.class)) {
+	            for (LibraryRecord library : action.getLibraries()) {
+	                for (String variable : library.variables) {
+	                    vars.add(new UserDefinedGlobalVariable(variable, new File(run.getRootDir(), "libs/" + library.name + "/vars/" + variable + ".txt")));
+	                }
+	            }
             }
+            
             return vars;
         }
 
@@ -288,8 +305,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
                 Queue.Executable executable = execution.getOwner().getExecutable();
                 if (executable instanceof Run) {
                     Run<?,?> run = (Run) executable;
-                    LibrariesAction action = run.getAction(LibrariesAction.class);
-                    if (action != null) {
+                    for( LibrariesAction action : run.getActions(LibrariesAction.class)) {
                         FilePath libs = new FilePath(run.getRootDir()).child("libs");
                         for (LibraryRecord library : action.getLibraries()) {
                             if (library.trusted) {
@@ -307,6 +323,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
                             }
                         }
                     }
+                    
                 }
             } catch (IOException | InterruptedException x) {
                 LOGGER.log(Level.WARNING, null, x);
@@ -319,8 +336,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowCopier;
     @Extension public static class Copier extends FlowCopier.ByRun {
 
         @Override public void copy(Run<?,?> original, Run<?,?> copy, TaskListener listener) throws IOException, InterruptedException {
-            LibrariesAction action = original.getAction(LibrariesAction.class);
-            if (action != null) {
+            for( LibrariesAction action : original.getActions(LibrariesAction.class )) {
                 copy.addAction(new LibrariesAction(action.getLibraries()));
                 FilePath libs = new FilePath(original.getRootDir()).child("libs");
                 if (libs.isDirectory()) {

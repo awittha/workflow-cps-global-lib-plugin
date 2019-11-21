@@ -24,14 +24,17 @@
 
 package org.jenkinsci.plugins.workflow.libs;
 
+import java.io.IOException;
+import java.util.List;
+
+import org.codehaus.groovy.control.SourceUnit;
+
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.EnvironmentContributor;
 import hudson.model.InvisibleAction;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import java.io.IOException;
-import java.util.List;
 
 /**
  * A run action recording libraries used in a given build.
@@ -39,8 +42,15 @@ import java.util.List;
 class LibrariesAction extends InvisibleAction {
 
     private final List<LibraryRecord> libraries;
-
+    
+    private final String scope;
+    
     LibrariesAction(List<LibraryRecord> libraries) {
+    	this(null, libraries);
+    }
+
+    LibrariesAction(String scope, List<LibraryRecord> libraries) {
+    	this.scope = scope;
         this.libraries = libraries;
     }
 
@@ -49,6 +59,13 @@ class LibrariesAction extends InvisibleAction {
      */
     public List<LibraryRecord> getLibraries() {
         return libraries;
+    }
+    
+    /**
+     * @return An identifier of the source file that these library definitions are for
+     */
+    public String getScope() {
+    	return scope;
     }
 
     @Extension public static class LibraryEnvironment extends EnvironmentContributor {

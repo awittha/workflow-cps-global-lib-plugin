@@ -134,7 +134,7 @@ import org.jenkinsci.plugins.workflow.cps.GroovyShellDecorator;
                 try {
                     for (ClasspathAdder adder : ExtensionList.lookup(ClasspathAdder.class)) {
                     	 LOGGER.log( Level.INFO, "With ClasspathAdder [" + adder + "] of class [" + adder.getClass() + "], will try to make an addition for libraries [" + libraries + "]" );
-                        for (ClasspathAdder.Addition addition : adder.add(execution, libraries, changelogs)) {  
+                        for (ClasspathAdder.Addition addition : adder.add(source.getName(), execution, libraries, changelogs)) {  
                         	LOGGER.log( Level.INFO, "made addition: [" + addition + "]; libraries is now [" + libraries + "]" );
                             addition.addTo(execution);
                         }
